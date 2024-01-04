@@ -6,12 +6,18 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"flag"
 )
 
 func main() {
 	var city string
-	fmt.Print("Enter City: ")
-	fmt.Scanln(&city)
+	flag.StringVar(&city, "city", "", "City name for which to fetch weather data")
+	flag.Parse()
+  
+	if city == "" {
+	  fmt.Println("Please provide a city name using the -city flag")
+	  return
+	}
 
 	weatherData, err := getWeatherCity(city)
 	if err != nil {
