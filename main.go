@@ -21,13 +21,13 @@ func main() {
 
 	// Extract and print relevant information
 	fmt.Println("---", city, "---")
-	fmt.Printf("Current Temperature: %v°C\n", weatherData["main"].(map[string]interface{})["temp"])
+	fmt.Printf("Current Temperature: %v°F\n", weatherData["main"].(map[string]interface{})["temp"])
 }
 
 func getWeatherCity(city string) (map[string]interface{}, error) {
 	apiKey := os.Getenv("OPENWEATHERMAP_API_KEY")
 	// build API url
-	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, apiKey)
+	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=imperial", city, apiKey)
 	
 	// Make the API call
 	res, err := http.Get(url)
