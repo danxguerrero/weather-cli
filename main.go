@@ -1,59 +1,54 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"flag"
+    "encoding/json"
+    "flag"
+    "fmt"
+    "io"
+    "net/http"
 )
 
-func main() {
-	var city string
-	flag.StringVar(&city, "city", "", "City name for which to fetch weather data")
-	flag.Parse()
-  
-	if city == "" {
-	  fmt.Println("Please provide a city name using the -city flag")
-	  return
-	}
+const backendURL = "https://weather-cli-backend.onrender.com/weather" 
 
-	weatherData, err := getWeatherCity(city)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+func getWeather(city string) (map[string]interface{}, error) {
+    url := fmt.Sprintf("%s?city=%s", backendURL, city)
 
-	// Extract and print relevant information
-	fmt.Println("---", city, "---")
-	fmt.Printf("Current Temperature: %v°F\n", weatherData["main"].(map[string]interface{})["temp"])
+    resp, err := http.Get(url)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return nil, err
+    }
+
+    var weatherData map[string]interface{}
+    err = json.Unmarshal(body, &weatherData)
+    if err != nil {
+        return nil, err
+    }
+
+    return weatherData, nil
 }
 
-func getWeatherCity(city string) (map[string]interface{}, error) {
-	apiKey := os.Getenv("OPENWEATHERMAP_API_KEY")
-	// build API url
-	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=imperial", city, apiKey)
-	
-	// Make the API call
-	res, err := http.Get(url)
-	if err != nil{
-		return nil, err
-	}
-	defer res.Body.Close()
+func main() {
+    var city string
+    flag.StringVar(&city, "city", "", "City name for which to fetch weather data")
+    flag.Parse()
 
-	// Read response body
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
+    if city == "" {
+        fmt.Println("Please provide a city name using the -city flag")
+        return
+    }
 
-	// Parse JSON response
-	var data map[string]interface{}
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, err
-	}
+    weatherData, err := getWeather(city)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
 
-	return data, nil
+    fmt.Println("---", city, "---")
+    fmt.Printf("Current temperature: %v°F\n", weatherData["main"].(map[string]interface{})["temp"])
 }
